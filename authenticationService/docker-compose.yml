@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  mysql-db:
+    image: "mysql"
+    environment:
+      MYSQL_DATABASE: 'users'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'rootpassword'
+    ports:
+      - '3306:3306'
+    volumes:
+      - my-db:/var/lib/mysql
+volumes:
+  my-db:
