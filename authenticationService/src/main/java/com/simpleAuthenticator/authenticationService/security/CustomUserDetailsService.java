@@ -1,6 +1,6 @@
 package com.simpleAuthenticator.authenticationService.security;
 
-import com.simpleAuthenticator.authenticationService.ResourceNotFoundException;
+import com.simpleAuthenticator.authenticationService.exception.ResourceNotFoundException;
 import com.simpleAuthenticator.authenticationService.model.User;
 import com.simpleAuthenticator.authenticationService.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
