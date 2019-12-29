@@ -3,6 +3,7 @@ package com.simpleAuthenticator.authenticationService.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.simpleAuthenticator.authenticationService.model.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,16 +14,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
 @Getter
 @EqualsAndHashCode
+@Builder
 public class UserPrincipal implements UserDetails {
 
     private Long id;
 
     private String name;
-
-    private String username;
 
     @JsonIgnore
     private String email;
@@ -37,14 +36,18 @@ public class UserPrincipal implements UserDetails {
                 new SimpleGrantedAuthority(role.getName().name())
         ).collect(Collectors.toList());
 
-        return new UserPrincipal(
-                user.getId(),
-                user.getName(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(),
-                authorities
-        );
+        return UserPrincipal.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .authorities(authorities)
+                .build();
+    }
+
+    @Override
+    public String getUsername() {
+        return getEmail();
     }
 
     @Override

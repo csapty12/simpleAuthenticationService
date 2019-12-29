@@ -2,7 +2,6 @@ package com.simpleAuthenticator.authenticationService.controller;
 
 import com.simpleAuthenticator.authenticationService.exception.AppException;
 import com.simpleAuthenticator.authenticationService.model.Role;
-import com.simpleAuthenticator.authenticationService.model.RoleName;
 import com.simpleAuthenticator.authenticationService.model.User;
 import com.simpleAuthenticator.authenticationService.payload.request.LoginRequest;
 import com.simpleAuthenticator.authenticationService.payload.request.SignUpRequest;
@@ -23,17 +22,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
-import java.net.URI;
-import java.util.Collections;
-
-import javax.validation.Valid;
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -54,11 +51,10 @@ public class AuthController {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(),
+                        loginRequest.getEmail(),
                         loginRequest.getPassword()
                 )
         );
-
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
@@ -67,33 +63,25 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
-        if(userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return new ResponseEntity(new APIResponse(false, "Username is already taken!"),
-                    HttpStatus.BAD_REQUEST);
-        }
 
-        if(userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return new ResponseEntity(new APIResponse(false, "Email Address already in use!"),
                     HttpStatus.BAD_REQUEST);
         }
 
-        // Creating user's account
-        User user = new User(signUpRequest.getName(), signUpRequest.getUsername(),
+        User user = new User(signUpRequest.getName(),
                 signUpRequest.getEmail(), signUpRequest.getPassword());
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-                .orElseThrow(() -> new AppException("User Role not set."));
-
-        user.setRoles(Collections.singleton(userRole));
-
+        Set<Role> roles = new HashSet<>();
+        signUpRequest.getRoleNames().forEach(item -> {
+            Role userRole = roleRepository.findByName(item)
+                    .orElseThrow(() -> new AppException("User Role not set."));
+            roles.add(userRole);
+        });
+        user.setRoles(roles);
         User result = userRepository.save(user);
-
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentContextPath().path("/api/users/{username}")
-                .buildAndExpand(result.getUsername()).toUri();
-
-        return ResponseEntity.created(location).body(new APIResponse(true, "User registered successfully"));
+        return ResponseEntity.ok().body(new APIResponse(true, "User registered successfully"));
     }
 }

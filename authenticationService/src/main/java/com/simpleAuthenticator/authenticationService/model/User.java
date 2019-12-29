@@ -25,10 +25,6 @@ public class User {
     @Size(max = 40)
     private String name;
 
-    @NotBlank
-    @Size(max = 15)
-    private String username;
-
     @NaturalId
     @NotBlank
     @Size(max = 40)
@@ -39,9 +35,8 @@ public class User {
     @Size(max = 100)
     private String password;
 
-    public User( @NotBlank @Size(max = 40) String name, @NotBlank @Size(max = 15) String username, @NotBlank @Size(max = 40) @Email String email, @NotBlank @Size(max = 100) String password) {
+    public User( @NotBlank @Size(max = 40) String name, @NotBlank @Size(max = 40) @Email String email, @NotBlank @Size(max = 100) String password) {
         this.name = name;
-        this.username = username;
         this.email = email;
         this.password = password;
     }
